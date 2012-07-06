@@ -1,0 +1,76 @@
+
+Sub ProperEnableWatchControls(watched As Boolean)
+	If watched Then
+		btn_watch.Caption = "Unwatch"
+		lbl_watch.Visible = True
+	Else
+		btn_watch.Caption = "Watch"		
+		lbl_watch.Visible = False
+	End If	
+End Sub
+
+Sub SetupWatchControls()
+	Dim recCase As Record
+	Dim caseObjid As Long
+	Dim br As New BulkRetrieve
+	Dim lor As List
+
+	Set recCase = Cobj_CASE_OBJ.Contents
+	caseObjid = recCase.GetField("objid")
+
+  	br.SimpleQuery 0, "labeled_case_alst"
+  	br.AppendFilter 0, "parent_objid", cbEqual, caseObjid
+  	br.AppendFilter 0, "label_owner_name", cbEqual, App.UserName
+  	br.AppendFilter 0, "label", cbEqual, "watch"
+	br.RetrieveRecords
+	Set lor = br.GetRecordList(0)
+	If lor.Count > 0 Then
+		ProperEnableWatchControls True
+	Else
+		ProperEnableWatchControls False
+	End If	
+End Sub
+
+Sub btn_watch_Click()
+	Dim recCase As Record
+	Dim caseObjid As Long
+	Dim br As New BulkRetrieve
+	Dim lor As List
+	Dim recView As Record
+	Dim bs As New BulkSave
+	Dim recLabel As New Record
+
+	Set recCase = Cobj_CASE_OBJ.Contents
+	caseObjid = recCase.GetField("objid")
+
+  	br.SimpleQuery 0, "labeled_case_alst"
+  	br.AppendFilter 0, "parent_objid", cbEqual, caseObjid
+  	br.AppendFilter 0, "label_owner_name", cbEqual, App.UserName
+  	br.AppendFilter 0, "label", cbEqual, "watch"
+	br.RetrieveRecords
+	Set lor = br.GetRecordList(0)
+	If lor.Count > 0 Then
+		'delete the label
+		Set recView = lor.ItemByIndex(0)
+		recView.GetObject "label", recLabel
+		bs.DeleteRecord recLabel
+		bs.Save
+		ProperEnableWatchControls False		 
+	Else
+		'insert a label
+		recLabel.RecordType = "label"
+		recLabel.SetField "label", "watch"
+		bs.InsertRecord recLabel
+		bs.RelateRecordsToId recLabel, "case", caseObjid, "label2case"
+		bs.RelateRecordsToId recLabel, "user", App.UserObjid, "label2user"
+		bs.Save	
+		ProperEnableWatchControls True				 
+	End If	
+End Sub
+
+
+Sub Form_Load()
+	Me.DoDefault
+	Call SetupWatchControls
+End Sub
+

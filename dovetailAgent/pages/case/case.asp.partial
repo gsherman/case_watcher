@@ -1,0 +1,82 @@
+=====================
+server side: query to see if this case is being watched:
+=====================
+
+	 	var boLabel = FCSession.CreateGeneric('label');
+		boLabel.AppendFilter("label", "=", "watch");
+    boLabel.ParentRelation = 'case2label';
+    boLabel.ParentBO = boCase;
+		boLabel.AppendFilter("label2user", "=", FCSession.Item("user.id"));
+
+    boCase.Bulk.Query();
+
+
+		var caseIsBeingWatched = false;
+		if (boLabel.Count() > 0){
+			caseIsBeingWatched = true;
+		}
+    
+
+=====================
+client side code, at the end of document ready, set the watched state
+=====================
+$(document).ready(function() {
+
+	setWatchState("<%=caseIsBeingWatched%>");		
+
+
+=====================
+client side functions:
+=====================
+
+function setWatchState(which){
+	if ((which + '').toLowerCase() == "true"){
+		$("#watch-case").hide();
+		$("#unwatch-case").show();                              
+	}else{
+		$("#watch-case").show();
+		$("#unwatch-case").hide();                              	
+	}	
+}
+
+function watchCase(which){
+      var watchData = {
+         id_number: $("#id_number").val(),
+         objid: $("#objid").val(),
+         watch:which
+      }
+
+			var successMessage = "You are now watching this case";
+			if (which == false){
+				successMessage = "You are no longer watching this case";
+			}
+			
+      $.ajax({
+         type: "POST",
+         url: "watch_case.asp",
+         dataType: "json",
+         data: watchData,
+         success: function(results) {
+            if(results.success == true) {
+               showMessage(successMessage);
+       				setWatchState(which);
+            } else {
+               alert("An error occurred: " + results.errorMessage);
+            }
+         },
+ 					error:function (xhr, ajaxOptions, thrownError){
+                    alert("An unexpected error occurred: " + thrownError + '\r\nStatus: ' + xhr.status);
+         }
+      });
+   }
+
+
+=====================
+HTML, watch and unwatch links
+=====================
+      	<a href="#" id="watch-case" onclick="watchCase(true);"><span id="watch-case-star" style="font-style:normal;text-decoration:none;">&#9734;</span>Watch</a>
+      	<a href="#" id="unwatch-case" onclick="watchCase(false);" style="display:none;"><span id="watched-case-star" style="font-style:normal;text-decoration:none;">&#9733;</span>Unwatch</a>
+
+
+
+   	

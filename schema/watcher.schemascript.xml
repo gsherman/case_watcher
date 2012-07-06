@@ -1,0 +1,58 @@
+﻿<schemaScript xmlns="http://www.dovetailsoftware.com/2006/10/SchemaScript.xsd">
+    
+    
+  <addTable name="label" id="4710">
+    <groupName>Dovetail</groupName>
+  </addTable>
+
+  <addColumn name="objid" dataType="Integer" table="label" >
+    <description>Internal record number</description>
+    <clarifyGenericFieldID>3</clarifyGenericFieldID>
+  </addColumn>
+  <addColumn name="label" dataType="String" table="label" >
+    <length>255</length>
+  </addColumn>
+  <addColumn name="dev" dataType="Integer" table="label" >
+    <isNullable>true</isNullable>
+    <description>Row version number for mobile distribution purposes</description>
+    <clarifyGenericFieldID>151</clarifyGenericFieldID>
+  </addColumn>
+
+  <addRelation name="case2label" table="case" inverseRelationName ="label2case" inverseTable="label"  type="OneToMany"/>
+  <addRelation name="user2label" table="user" inverseRelationName ="label2user" inverseTable="label"  type="OneToMany"/>
+
+  <addIndex name="label_index" columns="label,label2case,label2user" table="label" >
+    <isUnique>true</isUnique>
+  </addIndex>
+
+  <addColumn table="case" dataType="DateTime" name="x_change_date"/>
+
+
+  <addView  id="4711" name="labeled_case_alst" />
+
+    <addViewColumn name="entry_time"  view="labeled_case_alst" table="act_entry" column="entry_time"/>
+    <addViewColumn name="act_code" view="labeled_case_alst" table="act_entry" column="act_code" />
+    <addViewColumn name="add_info" view="labeled_case_alst" table="act_entry" column="addnl_info" />
+
+    <addViewColumn name="parent_objid" view="labeled_case_alst" table="case" column="objid" />
+    <addViewColumn name="parent_id" view="labeled_case_alst" table="case" column="id_number" />
+    <addViewColumn name="modify_stmp" view="labeled_case_alst" table="case" column="modify_stmp" />
+    
+    <addViewColumn name="objid" view="labeled_case_alst" table="act_entry" column="objid" >
+        <clarifyGenericFieldID>3</clarifyGenericFieldID>
+    </addViewColumn>
+    <addViewColumn name="act_name" view="labeled_case_alst" table="gbst_elm" column="title" />
+
+    <addViewColumn name="label" view="labeled_case_alst" table="label" column="label" />
+    <addViewColumn name="label_objid" view="labeled_case_alst" table="label" column="objid" />
+        
+    <addViewColumn name="label_owner_name" view="labeled_case_alst" table="user" column="login_name" />
+    <addViewColumn name="label_owner_objid" view="labeled_case_alst" table="user" column="objid" />
+    
+
+    <addJoin view="labeled_case_alst" kind="Inner" table="act_entry" relation="act_entry2case"/>
+    <addJoin view="labeled_case_alst" kind="Inner" table="act_entry" relation="entry_name2gbst_elm"/>
+    <addJoin view="labeled_case_alst" kind="Inner" table="case" relation="case2label"/>
+    <addJoin view="labeled_case_alst" kind="Inner" table="label" relation="label2user" />
+    
+</schemaScript> 
